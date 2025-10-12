@@ -1,5 +1,5 @@
 
-# Graph-Representation-Learning-for-Adversarial-Demotion-Attacks
+# Adversarial Edge Perturbation Framework in Graph-based Retrieval
 
 [![made-with-python](https://img.shields.io/badge/Made%20with-Python-1f425f.svg)](https://www.python.org/) [![Documentation Status](https://readthedocs.org/projects/ansicolortags/badge/?version=latest)](http://ansicolortags.readthedocs.io/?badge=latest)
 
