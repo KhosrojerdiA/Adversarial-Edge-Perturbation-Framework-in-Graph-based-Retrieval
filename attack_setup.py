@@ -14,7 +14,7 @@ sys.path.append(project_path)
 
 from utils.utils import *
 #from model.retrieval import * 
-from model.retrieval_epaglc_v2 import * 
+from model.retrieval_epaglc import * 
 from model.per_node_attack import *  
 
 import torch
