@@ -43,5 +43,5 @@ We evaluate the performance of our proposed method and baselines using both sing
 
 
 ## Contributing
-This github is provided as a complementary materials for a SIGIR 2025 short paper.
+This github is provided as a complementary materials for a ECIR 2025 short paper.
 
