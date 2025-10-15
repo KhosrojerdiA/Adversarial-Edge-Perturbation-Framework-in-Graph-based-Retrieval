@@ -14,7 +14,7 @@ sys.path.append(project_path)
 
 from utils.utils import *
 #from model.retrieval import * 
-from model.retrieval_epaglc import * 
+from model.retrieval_epaglc_v2 import * 
 from model.per_node_attack import *  
 
 import torch
@@ -63,16 +63,17 @@ data_name_list = ['Cora', 'CiteSeer', 'PubMed']
 
 model_name_list = ['per_node_random_attack', 'per_node_highest_degree', 'per_node_p_page_rank', 'per_node_viking',
                    'per_node_gold_attack', 'per_node_targeted_node']
-
+                   
+#['per_node_highest_degree', 'per_node_p_page_rank', 'per_node_viking', 'per_node_gold_attack', 'per_node_targeted_node']
 
 
 graph_model_list = ['epagcl_gcn', 'epagcl_sage']
-
+#'epagcl_gcn', 'epagcl_sage'
        
 text = "ex_1_v1_citeseer_gcn_model_false"
 
 
-scorer_path = f'/mnt/data/khosro/Graph-Pruning/trained_scorer/{data_name_list[0]}_{graph_model_list[0]}_scorer_model_100_epochs_s4_ex_1_v1.pt'
+scorer_path = f'/mnt/data/khosro/Graph-Pruning/trained_scorer/{data_name_list[0]}_{graph_model_list[0]}_scorer_model_100_epochs_s4_ex8.pt'
 #scorer_path = f'/mnt/data/khosro/Graph-Pruning/trained_scorer/{data_name_list[0]}_{model_name_list[0]}_scorer_model_50_epochs.pt'
 
 
@@ -101,6 +102,7 @@ n = 10
 
 result_path = f"/mnt/data/khosro/Graph-Pruning/outputs"
 
+embedding_save_dir = "/mnt/data/khosro/Graph-Pruning/embeddings_v2"
 trained_models_path = f"/mnt/data/khosro/Graph-Pruning/edge_performance_dataset_v2"
 dataset_subgraph_path = "/mnt/data/khosro/Graph-Pruning/data/pubmed_subgraph.pt"
 
@@ -182,7 +184,7 @@ for data_name in data_name_list:
                             recall_20, recall_100, recall_500, recall_1000, recall_4000, 
                             avg_position_20, avg_position_100, avg_position_500, avg_position_1000, avg_position_4000 
 
-                            ) = retrieval_v2(data, data_name, graph_model, min_number_edges, main_seed)
+                            ) = retrieval_v3(data, data_name, graph_model, min_number_edges, embedding_save_dir, main_seed)
                             
 
                             print("____________________###________________________", flush=True)
@@ -192,6 +194,11 @@ for data_name in data_name_list:
                             print("____________________###________________________", flush=True)
 
                             start_time = time.time()
+
+                            if model_name in  ['per_node_highest_degree', 'per_node_p_page_rank']:
+                                promotion_mode = False 
+                            else: 
+                                promotion_mode = True
 
                             #Attack
                             (

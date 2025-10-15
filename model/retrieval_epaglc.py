@@ -26,7 +26,7 @@ from torch_geometric.nn import GATv2Conv
 
 
 
-def retrieval_v2(data, data_name, graph_model, min_number_edges, main_seed):
+def retrieval_v2(data, data_name, graph_model, min_number_edges, save_dir, main_seed):
 
     torch.manual_seed(main_seed)
     torch.cuda.manual_seed(main_seed)
@@ -50,7 +50,7 @@ def retrieval_v2(data, data_name, graph_model, min_number_edges, main_seed):
 
 
     if graph_model.lower() == "epagcl_gcn" or graph_model.lower() == "epagcl_sage":
-        save_dir = "/mnt/data/khosro/Graph-Pruning/embeddings"
+
         epochs=2000
 
         file_prefix = f"{data_name}_{graph_model}_epochs_{epochs}"
