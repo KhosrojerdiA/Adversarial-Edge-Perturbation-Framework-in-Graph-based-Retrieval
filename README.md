@@ -5,9 +5,6 @@
 
 GRAPH In this paper, we propose a novel approach to manipulate keyword search results by strategically removing edges in a graph using graph representation learning techniques. Our method targets a specific node, representing an entity or document, and performs an attack by identifying the most influential edges whose removal demotes the node in the retrieval task. By leveraging the learned embeddings from a graph neural network (GCN or Sage), we rank the edges based on their impact on the node’s ranking position. This approach provides an effective mechanism to di- minish the visibility of targeted nodes in keyword-based searches, offering insights into adversarial attacks on graph-based search systems with constrained of budget for multi-edge removal strategy. Our experiments on real-world dataset demonstrate the efficacy of our method, showing significant demotion of target nodes with minimal edge removals, while maintaining the overall structure and relevance of the graph. This work contributes to the growing body of research on adversarial attacks in graph-based systems, with implications for information retrieval and search engine optimization.
 
-![](images/model.png)
-<p align="center"><em>Model Architecture.</em></p>
-
 
 ## Installation
 
