@@ -186,7 +186,7 @@ for data_name in data_name_list:
                             recall_20, recall_100, recall_500, recall_1000, recall_4000, 
                             avg_position_20, avg_position_100, avg_position_500, avg_position_1000, avg_position_4000 
 
-                            ) = retrieval_v3(data, data_name, graph_model, min_number_edges, embedding_save_dir, main_seed)
+                            ) = retrieval_v2(data, data_name, graph_model, min_number_edges, embedding_save_dir, main_seed)
                             
 
                             print("____________________###________________________", flush=True)
