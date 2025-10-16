@@ -662,14 +662,15 @@ def attacked_store_to_excel(data_name, graph_model, min_number_edges, model_name
 #____________________________________________________________________________________________________________________________
 
 
-def store_to_excel(runs, data_name, graph_model, min_number_edges, model_name, budget,
+def store_to_excel(data_name, graph_model, min_number_edges, model_name, budget,
                                    retrieval_found_count, retrieval_recall, retrieval_avg_position, 
                                    attacked_recall, attacked_retrieval_node_found_count, attacked_retrieval_node_avg_position,
                                    attacked_avg_promoted, attacked_avg_demoted, 
                                    attacked_avg_changed, attacked_avg_unchanged, duration_per_run, result_path, promotion_mode, text):
     
     # Define the file path for the specific data_name
-    file_path = f"{result_path}/{data_name}_{promotion_mode}_{text}_report.xlsx"
+    file_path = f"{result_path}/results/{data_name}_{promotion_mode}_{text}_report.xlsx"
+    os.makedirs(os.path.dirname(file_path), exist_ok=True)
 
     # Prepare data for all tabs
     data_list = [
@@ -871,33 +872,51 @@ def attacked_embedding(updated_data, one_node_selected_nodes, graph_model, datas
 #____________________________________________________________________________________________________________________________
 
 
-def attacked_embedding_v2(updated_data, one_node_selected_nodes, graph_model, dataset_model): 
+def attacked_embedding_v2(updated_data, one_node_selected_nodes, graph_model, dataset_model, device="cuda"): 
+
     """
-    Use pretrained model from retrieval() in eval mode to recompute attacked embeddings.
+    Generate attacked embeddings without retraining the model.
+
+    Args:
+        updated_data (torch_geometric.data.Data): Graph after edge removals.
+        one_node_selected_nodes (torch.Tensor): Node(s) to isolate and compute query embeddings for.
+        dataset_model (torch.nn.Module): Pre-trained model (already trained before attack).
+        device (str): 'cuda' or 'cpu'.
+    
+    Returns:
+        attacked_dataset_embeddings (torch.Tensor): Embeddings for all nodes in the attacked graph.
+        one_node_selected_node_embeddings (torch.Tensor): Embeddings for selected nodes.
     """
+
     if graph_model == 'gat2':
         torch.use_deterministic_algorithms(True, warn_only=True)
 
-    device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+    device = torch.device(device if torch.cuda.is_available() else "cpu")
     updated_data = updated_data.to(device)
     dataset_model = dataset_model.to(device)
     dataset_model.eval()
 
     # Full attacked graph
     with torch.no_grad():
-        h, z = dataset_model(updated_data.x, updated_data.edge_index)
-    attacked_dataset_embeddings = h
+        attacked_dataset_embeddings, _ = dataset_model(updated_data.x, updated_data.edge_index)
 
-    # Isolated edges (exclude attacked nodes)
+    print("- Attacked Embedding is Generated!", flush=True)
+    print("____________________________________________", flush=True)
+
+    # --- Isolate selected node(s) by removing edges connected to them
     selected_nodes_set = set(one_node_selected_nodes.tolist())
-    mask = [(e[0].item() not in selected_nodes_set) and (e[1].item() not in selected_nodes_set)
+    mask = [(e[0].item() not in selected_nodes_set) and (e[1].item() not in selected_nodes_set) 
             for e in updated_data.edge_index.t()]
     mask = torch.tensor(mask, dtype=torch.bool, device=device)
     isolated_edge_index = updated_data.edge_index[:, mask]
 
+    # --- Embeddings for isolated nodes (query nodes)
     with torch.no_grad():
-        h, z = dataset_model(updated_data.x, isolated_edge_index)
-    one_node_selected_node_embeddings = h[one_node_selected_nodes]
+        isolated_embeddings, _ = dataset_model(updated_data.x, isolated_edge_index)
+    one_node_selected_node_embeddings = isolated_embeddings[one_node_selected_nodes]
+
+    print("- Attacked Query Embedding is Generated!", flush=True)
+    print("____________________________________________", flush=True)
 
     return attacked_dataset_embeddings, one_node_selected_node_embeddings
 
@@ -1477,8 +1496,9 @@ def create_test_set_trained_model(data, selected_nodes):
 def process_excel_sheets(result_path, data_name, promotion_mode, text):
 
     sheet_names = ["retrieval_avg_position", "attacked_retrieval_node_avg_pos", "duration_per_run"] 
-    file_path = f"{result_path}/{data_name}_{promotion_mode}_{text}_report.xlsx"
-    output_path = f"{result_path}/{data_name}_{promotion_mode}_{text}_report_filtered.xlsx"
+    file_path = f"{result_path}/results/{data_name}_{promotion_mode}_{text}_report.xlsx"
+    output_path = f"{result_path}/filtered/{data_name}_{promotion_mode}_{text}_report_filtered.xlsx"
+    os.makedirs(os.path.dirname(output_path), exist_ok=True)
 
     with pd.ExcelWriter(output_path, engine='xlsxwriter') as writer:
         for sheet_name in sheet_names:
@@ -1763,34 +1783,71 @@ def load_vgae_model(data, vgae_path, vgae_emb_path):
 
 
     return vgae_model, vgae_embedding
+#____________________________________________________________________________________________________________________________
+
+def node_retrieval_position(node_id, retrieval_list):
+    """
+    Return the position (1-indexed) of node_id in retrieval_list.
+    If not found, return -1.
+    """
+    try:
+        position = retrieval_list.index(node_id) + 1  # +1 for 1-indexed position
+        return position
+    except ValueError:
+        return -1  # Node not found
+
 
 #____________________________________________________________________________________________________________________________
 
-def show_query_position(data_name, model_name, graph_model, node_id, attacked_at_num_node_dict):
-    save_path = f"/mnt/data/khosro/Graph-Pruning/variation_output/{data_name}_{model_name}_{graph_model}_query_positions.csv"
+def show_query_position(data_name, model_name, graph_model, node_id, node_retrieval_rank, attacked_at_num_node_dict, result_path):
+    
+    """
+    Logs retrieval vs attack positions for a node, including delta and success flag.
+
+    Columns:
+        data_name, model_name, graph_model, node_id,
+        retrieval_position, attack_position, delta, success_flag
+    """
+
+    save_path = f"{result_path}/query_positions/{data_name}_{model_name}_{graph_model}_query_positions.csv"
     os.makedirs(os.path.dirname(save_path), exist_ok=True)
 
     node_tensor = attacked_at_num_node_dict.copy()
     nodes_tensor = node_tensor[node_id].flatten()
 
-    # Find the index of node_id
+    # --- Find attack position (after attack) ---
     positions = (nodes_tensor == node_id).nonzero(as_tuple=True)[0]
-
     if len(positions) > 0:
-        position_value = (positions + 1).item()
-        print(f"Node {node_id} found at position {position_value}")
+        attack_position = (positions + 1).item()  # 1-indexed
     else:
-        position_value = None
-        print(f"Node {node_id} not found.")
+        attack_position = None
 
-    # --- Append to CSV ---
-    new_row = pd.DataFrame({"data_name":[data_name], "model_name":[model_name], "graph_model":[graph_model],"node_id": [node_id] , "position": [position_value]})
+    # --- Compute delta and success flag ---
+    if attack_position is not None and node_retrieval_rank is not None:
+        delta = attack_position - node_retrieval_rank
+        success_flag = 1 if delta > 0 else 0
+    else:
+        delta = None
+        success_flag = None
 
-    # If file exists, append; otherwise, create new file with header
+    # --- Create DataFrame row ---
+    new_row = pd.DataFrame({
+        "data_name": [data_name],
+        "model_name": [model_name],
+        "graph_model": [graph_model],
+        "node_id": [node_id],
+        "retrieval_position": [node_retrieval_rank],
+        "attack_position": [attack_position],
+        "delta": [delta],
+        "success_flag": [success_flag]
+    })
+
+    # --- Save / Append ---
     if os.path.exists(save_path):
         new_row.to_csv(save_path, mode='a', header=False, index=False)
     else:
         new_row.to_csv(save_path, mode='w', header=True, index=False)
+
 
 #____________________________________________________________________________________________________________________________
     

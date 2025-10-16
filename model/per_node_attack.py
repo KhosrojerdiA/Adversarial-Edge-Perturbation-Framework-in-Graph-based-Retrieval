@@ -56,7 +56,7 @@ from networkx import pagerank
 
 def per_node_attack(model_name, graph_model, data_name, data, dataset_embeddings, model, selected_nodes, selected_node_embeddings, 
                     top_k_indice_at_20, top_k_indice_at_100, top_k_indice_at_500, top_k_indice_at_1000, top_k_indice_at_4000, 
-                    trained_models_path, n, budget, scorer_path, promotion_mode):
+                    trained_models_path, n, budget, scorer_path, result_path, promotion_mode):
     
 
     vgae_path = f"/mnt/data/khosro/Graph-Pruning/trained_scorer/{data_name}_{graph_model}_VGAE.pt"
@@ -157,7 +157,8 @@ def per_node_attack(model_name, graph_model, data_name, data, dataset_embeddings
                                                                                                                                                  attacked_at_num_node_dict)
 
         #print(attacked_at_num_node_dict[node_id])
-        show_query_position(data_name, model_name, graph_model, node_id, attacked_at_num_node_dict)
+        node_retrieval_rank = node_retrieval_position(node_id, top_k_indice_at_4000[step_count].tolist())
+        show_query_position(data_name, model_name, graph_model, node_id, node_retrieval_rank, attacked_at_num_node_dict, result_path)
         step_count += 1
 
 # ___________________________________________________________ Loop _______________________________________________________________

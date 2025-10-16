@@ -6,8 +6,8 @@ import os
 #os.environ["CUDA_VISIBLE_DEVICES"] = "1"
 
 
-project_path = '/mnt/data/khosro/Graph-Pruning'
-sys.path.append(project_path)
+main_path = '/mnt/data/khosro/Graph-Pruning'
+sys.path.append(main_path)
 
 # Set a seed for reproducibility
 #torch.manual_seed(3708) 
@@ -100,11 +100,14 @@ n = 10
 
 #____________________________________________________________ Folders ___________________________________________________________
 
-result_path = f"/mnt/data/khosro/Graph-Pruning/outputs"
+result_path = f"{main_path}/outputs/v1"
+os.makedirs(os.path.dirname(result_path), exist_ok=True)
 
-embedding_save_dir = "/mnt/data/khosro/Graph-Pruning/embeddings_v2"
-trained_models_path = f"/mnt/data/khosro/Graph-Pruning/edge_performance_dataset_v2"
-dataset_subgraph_path = "/mnt/data/khosro/Graph-Pruning/data/pubmed_subgraph.pt"
+
+embedding_save_dir = f"{main_path}/embeddings"
+trained_models_path = f"{main_path}/edge_performance_dataset_v2"
+dataset_subgraph_path = f"{main_path}/data/pubmed_subgraph.pt"
+
 
 #____________________________________________________________ Seeds ____________________________________________________________
 
@@ -211,7 +214,7 @@ for data_name in data_name_list:
 
                             )= per_node_attack(model_name, graph_model, data_name, data, dataset_embeddings, model, selected_nodes, selected_node_embeddings, 
                                             top_k_indice_at_20, top_k_indice_at_100, top_k_indice_at_500, top_k_indice_at_1000, top_k_indice_at_4000, 
-                                            trained_models_path, n, budget, scorer_path, promotion_mode)
+                                            trained_models_path, n, budget, scorer_path, result_path, promotion_mode)
 
                             end_time = time.time()
                             duration = end_time - start_time
