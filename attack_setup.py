@@ -198,9 +198,9 @@ for data_name in data_name_list:
                             start_time = time.time()
 
                             if model_name in  ['per_node_highest_degree', 'per_node_p_page_rank']:
-                                promotion_mode = False 
+                                promotion_mode = True 
                             else: 
-                                promotion_mode = True
+                                promotion_mode = False
 
                             #Attack
                             (
