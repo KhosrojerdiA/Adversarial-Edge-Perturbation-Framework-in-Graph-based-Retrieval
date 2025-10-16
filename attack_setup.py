@@ -243,7 +243,7 @@ for data_name in data_name_list:
 
                         #retrieval_store_to_excel(data_name, graph_model, min_number_edges, model_name, retrieval_found_count, retrieval_recall, retrieval_avg_position, result_path)
                         print("____________________###________________________", flush=True)
-                        store_to_excel(runs, data_name, graph_model, min_number_edges, model_name, budget, 
+                        store_to_excel(data_name, graph_model, min_number_edges, model_name, budget, 
                                     retrieval_found_count, retrieval_recall, retrieval_avg_position, 
                                     attacked_recall, attacked_retrieval_node_found_count, attacked_retrieval_node_avg_position,
                                     attacked_avg_promoted, attacked_avg_demoted, 
