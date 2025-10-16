@@ -197,7 +197,7 @@ for data_name in data_name_list:
 
                             start_time = time.time()
 
-                            if model_name in  ['per_node_highest_degree', 'per_node_p_page_rank']:
+                            if model_name in  ['per_node_highest_degree', 'per_node_p_page_rank', 'per_node_viking']:
                                 promotion_mode = True 
                             else: 
                                 promotion_mode = False
