@@ -73,8 +73,7 @@ graph_model_list = ['epagcl_gcn', 'epagcl_sage']
 text = "ex_1_v1_citeseer_gcn_model_false"
 
 
-scorer_path = f'/mnt/data/khosro/Graph-Pruning/trained_scorer/{data_name_list[0]}_{graph_model_list[0]}_scorer_model_100_epochs_s4_ex8.pt'
-#scorer_path = f'/mnt/data/khosro/Graph-Pruning/trained_scorer/{data_name_list[0]}_{model_name_list[0]}_scorer_model_50_epochs.pt'
+scorer_path = f'{main_path}/trained_scorer/{data_name_list[0]}_{graph_model_list[0]}_scorer_model_100_epochs_s4_ex8.pt'
 
 
 budget_list = [1, 2, 3, 4, 5] 

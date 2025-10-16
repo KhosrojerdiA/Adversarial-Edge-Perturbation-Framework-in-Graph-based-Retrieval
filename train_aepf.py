@@ -5,8 +5,8 @@ import os
 #os.environ["CUDA_VISIBLE_DEVICES"] = "1"
 
 
-project_path = '/mnt/data/khosro/Graph-Pruning'
-sys.path.append(project_path)
+main_path = '/mnt/data/khosro/Graph-Pruning'
+sys.path.append(main_path)
 
 # Set a seed for reproducibility
 #torch.manual_seed(3708) 
@@ -62,49 +62,6 @@ def pairwise_ranking_loss(pos_scores, neg_scores, margin=1.0):
 
 #_________________________________________________________________________________________
 
-
-def build_train_df_from_simplified_performance_v2(simplified_performance,selected_nodes):
-    """
-    Builds a dataframe with columns [src, dst, delta, node] from simplified_performance.
-    Includes ALL nodes except those in selected_nodes, then saves it to disk.
-    """
-
-    save_dir = "/mnt/data/khosro/Graph-Pruning/df/citeseer_train_df.csv"
-
-
-    # Ensure selected_nodes is a list
-    if isinstance(selected_nodes, torch.Tensor):
-        selected_nodes = selected_nodes.tolist()
-
-    rows = []
-    excluded_edges = 0
-    included_edges = 0
-
-    # Iterate through all nodes in simplified_performance
-    for node, edge_dict in simplified_performance.items():
-        if node in selected_nodes:
-            excluded_edges += len(edge_dict)
-            continue
-        for (src, dst), delta in edge_dict.items():
-            rows.append({"src": src, "dst": dst, "delta": delta, "node": node})
-            included_edges += 1
-
-    # Build DataFrame
-    train_df = pd.DataFrame(rows)
-
-    # Save to CSV
-    train_df.to_csv(save_dir, index=False)
-
-    print(f"✅ Train DF built with {len(train_df)} edges "
-          f"from {len(simplified_performance) - len(selected_nodes)} nodes "
-          f"(excluded {len(selected_nodes)} selected nodes, "
-          f"{excluded_edges} edges removed).")
-    print(f"💾 Saved to: {save_dir}")
-    print(train_df.head(), flush=True)
-
-    return train_df
-
-#_________________________________________________________________________________________
 
 def train_edge_scorer_v3_from_simplified_performance(
     data,
@@ -228,9 +185,18 @@ def train_edge_scorer_v3_from_simplified_performance(
 
 #____________________________________________________________ Inputs ____________________________________________________________
 
-data_name = 'CiteSeer'
+data_name = 'Cora'
 #['Cora', 'CiteSeer', 'PubMed']
 
+
+graph_model = 'epagcl_gcn'
+#['gcn', 'sage', 'graphpatcher', 'gat2', 'epagcl_gcn', 'epagcl_sage']
+
+
+saving_path = f'{main_path}/trained_scorer/{data_name}_{graph_model}_scorer_model_100_epochs_s4_ex_1_v1.pt'
+
+
+#____________________________________________________________ Inputs ____________________________________________________________
 
 model_name = 'per_node_targeted_node'
 
@@ -238,13 +204,9 @@ model_name = 'per_node_targeted_node'
 # 'per_node_rl', 'per_node_cluster',
 # 'per_node_link_prediction', 'per_node_gold_attack', 'per_node_targeted_node']
 
-graph_model = 'epagcl_gcn'
-#['gcn', 'sage', 'graphpatcher', 'gat2', 'epagcl_gcn', 'epagcl_sage']
-       
 text = "train_scorer_v2_citeseer_gcn"
 print(f"Code: {text}")
 
-saving_path = f'/mnt/data/khosro/Graph-Pruning/trained_scorer/{data_name}_{graph_model}_scorer_model_100_epochs_s4_ex_1_v1.pt'
 
 budget = 1
 #[1, 2, 3, 4, 5] 
@@ -266,8 +228,8 @@ device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 #____________________________________________________________ Folders ___________________________________________________________
 
 
-trained_models_path = f"/mnt/data/khosro/Graph-Pruning/edge_performance_dataset_v2"
-dataset_subgraph_path = "/mnt/data/khosro/Graph-Pruning/data/pubmed_subgraph.pt"
+trained_models_path = f"{main_path}/edge_performance_dataset_v2"
+dataset_subgraph_path = f"{main_path}/data/pubmed_subgraph.pt"
 
 #____________________________________________________________ Seeds ____________________________________________________________
 
